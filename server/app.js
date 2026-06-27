@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 
+const productRoutes = require("./routes/productRoutes");
 const { notFound,
     errorHandler,
 } = require("./middleware/errorMiddleware");
@@ -23,6 +24,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
