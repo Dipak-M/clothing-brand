@@ -69,6 +69,7 @@ const loginUser = async (req, res) => {
 
     const user = await User.findOne({ email });
 
+    
     if (!user) {
       return res.status(400).json({
         message: "Invalid email or password",
@@ -111,7 +112,14 @@ const loginUser = async (req, res) => {
   }
 };
 
+const getMe = async (req, res) => {
+  res.status(200).json({
+    user: req.user,
+  });
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  getMe,
 };
