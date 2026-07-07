@@ -27,7 +27,9 @@ const createProduct = async (req, res) => {
 // @access  Public
 const getProducts = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find()
+    .populate("category")
+    .populate("createdBy", "name email");
 
     res.status(200).json({
       success: true,
@@ -47,7 +49,9 @@ const getProducts = async (req, res) => {
 // @access  Public
 const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id)
+    .populate("category")
+    .populate("createdBy", "name email");
 
     if (!product) {
       return res.status(404).json({
