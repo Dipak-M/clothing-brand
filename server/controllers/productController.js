@@ -1,14 +1,23 @@
 const Product = require("../models/Product");
 
+
+
 // @desc    Create Product
 // @route   POST /api/products
 // @access  Private/Admin
 const createProduct = async (req, res) => {
   try {
-    const product = await Product.create({
-      ...req.body,
-      createdBy: req.user._id,
-    });
+    console.log("BODY:", req.body);
+console.log("FILES:", req.files);
+    const images = req.files
+  ? req.files.map(file => file.path)
+  : [];
+
+const product = await Product.create({
+  ...req.body,
+  images,
+  createdBy: req.user._id,
+});
 
     res.status(201).json({
       success: true,

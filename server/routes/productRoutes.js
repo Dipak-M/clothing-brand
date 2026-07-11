@@ -19,6 +19,8 @@ const {
   validate,
 } = require("../validators/productValidator");
 
+const upload = require("../middleware/uploadMiddleware");
+
 // Public
 router.get("/", getProducts);
 router.get("/:id", getProductById);
@@ -28,6 +30,7 @@ router.post(
   "/",
   protect,
   admin,
+  upload.array("images", 5),
   productValidationRules,
   validate,
   createProduct
