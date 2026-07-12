@@ -7,6 +7,7 @@ const Product = require("../models/Product");
 // @access  Private
 const createOrder = async (req, res) => {
   try {
+    
     const {
       shippingAddress,
       paymentMethod,
@@ -30,6 +31,8 @@ console.log("Items length:", cart?.items?.length);
       });
     }
 
+    
+
     // Build order items
     const orderItems = cart.items.map((item) => ({
       product: item.product._id,
@@ -49,21 +52,45 @@ console.log("Items length:", cart?.items?.length);
       itemsPrice + Number(shippingPrice) + Number(taxPrice);
 
     // Create order
-    const order = await Order.create({
-      user: req.user._id,
-      items: orderItems,
-      shippingAddress,
-      paymentMethod,
-      itemsPrice,
-      shippingPrice,
-      taxPrice,
-      totalPrice,
-    });
+   // Create order
+const order = await Order.create({
+  user: req.user._id,
+  items: orderItems,
+  shippingAddress,
+  paymentMethod,
+  itemsPrice,
+  shippingPrice,
+  taxPrice,
+  totalPrice,
+});
 
-    res.status(201).json({
-      success: true,
-      order,
+// Reduce stock
+for (const item of cart.items) {
+  const product = await Product.findById(item.product._id);
+
+  if (!product) continue;
+
+  if (product.stock < item.quantity) {
+    return res.status(400).json({
+      success: false,
+      message: `${product.name} is out of stock`,
     });
+  }
+
+  product.stock -= item.quantity;
+
+  await product.save();
+}
+
+// Clear cart
+cart.items = [];
+await cart.save();
+
+// Return response
+res.status(201).json({
+  success: true,
+  order,
+});
 
   } catch (error) {
     res.status(500).json({
@@ -157,9 +184,50 @@ const getAllOrders = async (req, res) => {
   }
 };
 
+// @desc    Update Order Status
+// @route   PUT /api/orders/:id/status
+// @access  Private/Admin
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderStatus } = req.body;
+
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    order.orderStatus = orderStatus;
+
+    if (orderStatus === "Delivered") {
+      order.isDelivered = true;
+      order.deliveredAt = Date.now();
+    }
+
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Order status updated successfully",
+      order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
 module.exports = {
   createOrder,
   getMyOrders,
     getOrderById,
     getAllOrders,
+    updateOrderStatus,
 };
